@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   calcPayment,
   calcMaxItemFromWallet,
@@ -19,6 +19,42 @@ function maxPriceFromGov(gov: number) {
   return gov > 0 ? Math.round((gov / GOV_RATIO) * 100) / 100 : 0;
 }
 
+// PWA install prompt hook
+function useInstallPrompt() {
+  const [prompt, setPrompt] = useState<Event | null>(null);
+  const [installed, setInstalled] = useState(false);
+
+  useEffect(() => {
+    // ถ้าเปิดจาก homescreen แล้ว (standalone) ไม่ต้องแสดงปุ่ม
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setInstalled(true);
+      return;
+    }
+
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('appinstalled', () => setInstalled(true));
+
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const install = async () => {
+    if (!prompt) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (prompt as any).prompt();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { outcome } = await (prompt as any).userChoice;
+    if (outcome === 'accepted') setInstalled(true);
+    setPrompt(null);
+  };
+
+  return { canInstall: !!prompt && !installed, installed, install };
+}
+
 // G-Wallet สำหรับใช้สิทธิเต็ม 200 บาท
 const WALLET_FOR_FULL = Math.round(MAX_FULL_BENEFIT_PRICE * SELF_RATIO * 100) / 100;
 
@@ -30,6 +66,7 @@ const TABS: { id: Tab; label: string }[] = [
 
 export default function Calculator() {
   const [tab, setTab] = useState<Tab>('price');
+  const { canInstall, installed, install } = useInstallPrompt();
 
   // Tab: ราคาสินค้า
   const [priceInput, setPriceInput] = useState('');
@@ -89,6 +126,35 @@ export default function Calculator() {
   return (
     <div className={styles.page}>
       <h1 className={styles.title}>คำนวณ</h1>
+
+      {/* ── Install Banner ── */}
+      {canInstall && (
+        <button type="button" className={styles.installBanner} onClick={install}>
+          <div className={styles.installBannerLeft}>
+            <div className={styles.installIcon} aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            </div>
+            <div>
+              <div className={styles.installTitle}>ติดตั้งแอปบนมือถือ</div>
+              <div className={styles.installSub}>ใช้งานได้โดยไม่ต้องเปิดเบราว์เซอร์</div>
+            </div>
+          </div>
+          <div className={styles.installCta}>ติดตั้ง</div>
+        </button>
+      )}
+
+      {installed && (
+        <div className={styles.installedBadge}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          ติดตั้งแล้ว — เปิดได้จากหน้าจอหลักของมือถือ
+        </div>
+      )}
 
       {/* ── Tab Bar ── */}
       <div className={styles.tabs} role="tablist" aria-label="โหมดคำนวณ">
@@ -444,14 +510,6 @@ export default function Calculator() {
                 </div>
               )}
 
-              {!isFull && (
-                <div className={styles.tip}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style={{ color:'#F59E0B', flexShrink:0, marginTop:1 }} aria-hidden="true">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                  </svg>
-                  <span>เติม G-Wallet ถึง <strong>฿{fmt(WALLET_FOR_FULL)}</strong> รัฐช่วยเต็ม <strong>200 บาท</strong> — คุ้มสุด</span>
-                </div>
-              )}
             </section>
           )}
 

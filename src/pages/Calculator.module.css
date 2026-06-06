@@ -89,6 +89,32 @@
   color: #166534;
 }
 
+.iosBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #EFF6FF;
+  border: 1.5px solid #BFDBFE;
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+}
+
+.installIconIOS {
+  width: 40px;
+  height: 40px;
+  background: #DBEAFE;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2563EB;
+  flex-shrink: 0;
+}
+
+.iosBanner .installTitle { color: #1E40AF; }
+.iosBanner .installSub { color: #3B82F6; }
+
 /* ─── Tabs ─── */
 .tabs {
   display: grid;

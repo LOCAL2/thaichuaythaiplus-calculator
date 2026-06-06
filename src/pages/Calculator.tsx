@@ -23,9 +23,14 @@ function maxPriceFromGov(gov: number) {
 function useInstallPrompt() {
   const [prompt, setPrompt] = useState<Event | null>(null);
   const [installed, setInstalled] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    // ถ้าเปิดจาก homescreen แล้ว (standalone) ไม่ต้องแสดงปุ่ม
+    // ตรวจ iOS
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    setIsIOS(ios);
+
+    // ถ้าเปิดจาก homescreen แล้ว (standalone)
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setInstalled(true);
       return;
@@ -52,7 +57,12 @@ function useInstallPrompt() {
     setPrompt(null);
   };
 
-  return { canInstall: !!prompt && !installed, installed, install };
+  return {
+    canInstall: !!prompt && !installed,
+    isIOS: isIOS && !installed,
+    installed,
+    install,
+  };
 }
 
 // G-Wallet สำหรับใช้สิทธิเต็ม 200 บาท
@@ -66,7 +76,7 @@ const TABS: { id: Tab; label: string }[] = [
 
 export default function Calculator() {
   const [tab, setTab] = useState<Tab>('price');
-  const { canInstall, installed, install } = useInstallPrompt();
+  const { canInstall, isIOS, installed, install } = useInstallPrompt();
 
   // Tab: ราคาสินค้า
   const [priceInput, setPriceInput] = useState('');
@@ -145,6 +155,33 @@ export default function Calculator() {
           </div>
           <div className={styles.installCta}>ติดตั้ง</div>
         </button>
+      )}
+
+      {/* iOS — แนะนำวิธีติดตั้งเอง */}
+      {isIOS && (
+        <div className={styles.iosBanner}>
+          <div className={styles.installBannerLeft}>
+            <div className={styles.installIconIOS} aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                <polyline points="16 6 12 2 8 6"/>
+                <line x1="12" y1="2" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <div>
+              <div className={styles.installTitle}>ติดตั้งบน iPhone / iPad</div>
+              <div className={styles.installSub}>
+                กด{' '}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ display:'inline', verticalAlign:'middle' }}>
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                  <polyline points="16 6 12 2 8 6"/>
+                  <line x1="12" y1="2" x2="12" y2="15"/>
+                </svg>
+                {' '}Share → "Add to Home Screen"
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {installed && (

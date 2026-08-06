@@ -149,7 +149,7 @@ export default function Calculator() {
               </svg>
             </div>
             <div>
-              <div className={styles.installTitle}>ติดตั้งแอปบนมือถือ</div>
+              <div className={styles.installTitle}>ติดตั้งแอปบนอุปกรณ์นี้</div>
               <div className={styles.installSub}>ใช้งานได้โดยไม่ต้องเปิดเบราว์เซอร์</div>
             </div>
           </div>

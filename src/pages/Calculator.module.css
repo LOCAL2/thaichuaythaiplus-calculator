@@ -111,14 +111,19 @@
 .installedBadge {
   display: flex;
   align-items: center;
-  gap: 7px;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1.5px solid rgba(16, 185, 129, 0.2);
-  border-radius: var(--radius-md);
-  padding: clamp(8px, 1.5vw, 12px) clamp(12px, 2vw, 16px);
+  justify-content: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1.5px solid rgba(16, 185, 129, 0.3);
+  border-radius: var(--radius-lg);
+  padding: clamp(10px, 2vw, 14px) clamp(16px, 3vw, 20px);
   font-size: clamp(var(--font-size-xs), 2.5vw, var(--font-size-sm));
   font-weight: 600;
   color: #34D399;
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.1);
 }
 
 .iosBanner {

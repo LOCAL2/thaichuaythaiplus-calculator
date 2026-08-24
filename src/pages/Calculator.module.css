@@ -40,18 +40,15 @@
   justify-content: space-between;
   gap: clamp(8px, 2vw, 14px);
   width: 100%;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  border: none;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-default);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
   border-radius: var(--radius-lg);
   padding: clamp(12px, 2vw, 16px);
-  cursor: pointer;
   text-align: left;
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
-  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.3);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
 }
-
-.installBanner:hover { opacity: 0.93; }
-.installBanner:active { transform: scale(0.99); }
 
 .installBannerLeft {
   display: flex;
@@ -64,7 +61,7 @@
 .installIcon {
   width: clamp(34px, 6vw, 44px);
   height: clamp(34px, 6vw, 44px);
-  background: rgba(255,255,255,0.2);
+  background: var(--color-primary);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -76,26 +73,39 @@
 .installTitle {
   font-size: clamp(var(--font-size-xs), 2.5vw, var(--font-size-base));
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   margin-bottom: 2px;
   word-break: break-word;
 }
 
 .installSub {
   font-size: clamp(11px, 2vw, var(--font-size-xs));
-  color: rgba(255,255,255,0.8);
+  color: var(--text-secondary);
   white-space: normal;
 }
 
 .installCta {
-  background: white;
-  color: var(--color-primary-dark);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
   font-size: clamp(var(--font-size-xs), 2vw, var(--font-size-sm));
   font-weight: 800;
   padding: clamp(6px, 1.5vw, 10px) clamp(12px, 2.5vw, 18px);
   border-radius: var(--radius-full);
+  border: none;
   white-space: nowrap;
   flex-shrink: 0;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  box-shadow: 0 4px 10px rgba(13, 148, 136, 0.3);
+}
+
+.installCta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(13, 148, 136, 0.4);
+}
+
+.installCta:active {
+  transform: translateY(1px) scale(0.98);
 }
 
 .installedBadge {

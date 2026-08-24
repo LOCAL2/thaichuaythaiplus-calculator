@@ -80,7 +80,12 @@ function useInstallPrompt() {
   }, []);
 
   const install = async () => {
-    if (!prompt) return;
+    if (!prompt) {
+      if (import.meta.env.DEV) {
+        alert('ใน Dev Mode จะไม่สามารถติดตั้ง PWA ได้จริง (ใช้สำหรับทดสอบ UI เท่านั้น)');
+      }
+      return;
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (prompt as any).prompt();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -90,7 +95,7 @@ function useInstallPrompt() {
   };
 
   return {
-    canInstall: !!prompt && !installed,
+    canInstall: import.meta.env.DEV ? !installed : (!!prompt && !installed),
     isIOS: isIOS && !installed,
     installed,
     install,
@@ -172,7 +177,7 @@ export default function Calculator() {
 
       {/* ── Install Banner ── */}
       {canInstall && (
-        <button type="button" className={styles.installBanner} onClick={install}>
+        <div className={styles.installBanner}>
           <div className={styles.installBannerLeft}>
             <div className={styles.installIcon} aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -186,8 +191,8 @@ export default function Calculator() {
               <div className={styles.installSub}>ใช้งานได้โดยไม่ต้องเปิดเบราว์เซอร์</div>
             </div>
           </div>
-          <div className={styles.installCta}>ติดตั้ง</div>
-        </button>
+          <button type="button" className={styles.installCta} onClick={install}>ติดตั้ง</button>
+        </div>
       )}
 
       {/* iOS — แนะนำวิธีติดตั้งเอง */}

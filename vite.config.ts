@@ -9,13 +9,13 @@ export default defineConfig({
     babel({ presets: [reactCompilerPreset()] }),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png'],
+      includeAssets: ['20260708144656_4503.png'],
       manifest: {
         name: 'ไทยช่วยไทยพลัส — คำนวณสิทธิ 60/40',
         short_name: 'ไทยช่วยไทยพลัส',
         description: 'คำนวณสิทธิโครงการไทยช่วยไทยพลัส รัฐช่วย 60% คุณจ่าย 40%',
-        theme_color: '#0D9488',
-        background_color: '#F0FDFA',
+        theme_color: '#F59E0B',
+        background_color: '#0F172A',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
@@ -23,14 +23,8 @@ export default defineConfig({
         lang: 'th',
         icons: [
           {
-            src: '/icon-192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'any maskable',
-          },
-          {
-            src: '/icon-512.png',
-            sizes: '512x512',
+            src: '/20260708144656_4503.png',
+            sizes: 'any',
             type: 'image/png',
             purpose: 'any maskable',
           },

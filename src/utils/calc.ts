@@ -120,8 +120,7 @@ export function buildPlanOptions(gWalletBudget: number): PlanOption[] {
     });
   }
 
-  // ─── แผน 3: ใช้สัปดาห์ละครั้ง (ทุก 7 วัน) ──────────────────────
-  const weeksInMonth = Math.floor(daysInMonth / 7); // 4 สัปดาห์
+  const weeksInMonth = Math.floor(daysInMonth / 7);
   const selfPerWeek = walletBudget / weeksInMonth;
   const weekly = fromSelf(selfPerWeek);
   plans.push({
@@ -136,9 +135,6 @@ export function buildPlanOptions(gWalletBudget: number): PlanOption[] {
   return plans;
 }
 
-/**
- * ราคาสินค้าขั้นต่ำต่อวัน เพื่อใช้สิทธิ `govRemaining` บาทให้หมดภายใน `daysLeft` วัน
- */
 export function smartSuggestion(govRemaining: number, daysLeft: number): number {
   if (govRemaining <= 0 || daysLeft <= 0) return 0;
   const govPerDay = govRemaining / daysLeft;
@@ -147,7 +143,6 @@ export function smartSuggestion(govRemaining: number, daysLeft: number): number 
   return Math.round(price * 100) / 100;
 }
 
-/** ─── Helpers ─── */
 export function fmt(n: number, decimals = 2): string {
   return n.toLocaleString('th-TH', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
@@ -156,18 +151,16 @@ export function fmtInt(n: number): string {
   return n.toLocaleString('th-TH', { maximumFractionDigits: 0 });
 }
 
-/** วันที่เหลือในเดือนนี้ (จากวันนี้ถึงสิ้นเดือน) */
 export function daysLeftInMonth(): number {
   const now = new Date();
   const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   return lastDay - now.getDate() + 1;
 }
 
-/** เดือนปัจจุบัน (ภาษาไทย) */
 export function thaiMonth(): string {
   const months = [
-    'มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
-    'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม',
+    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
   ];
   return months[new Date().getMonth()];
 }

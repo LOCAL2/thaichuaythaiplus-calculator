@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   calcPayment,
   calcMaxItemFromWallet,
@@ -11,6 +11,38 @@ import {
 } from '../utils/calc';
 import type { CalcResult } from '../types';
 import styles from './Calculator.module.css';
+
+function AnimNumber({ val, format = fmt }: { val: number, format?: (v: number) => string }) {
+  const [value, setValue] = useState(0);
+  const currentVal = useRef(0);
+
+  useEffect(() => {
+    let startTimestamp: number | null = null;
+    const startValue = currentVal.current;
+    if (startValue === val) return;
+    
+    let frameId: number;
+    const duration = 600;
+    
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 4); // easeOutQuart
+      const nextVal = startValue + (val - startValue) * ease;
+      
+      setValue(nextVal);
+      currentVal.current = nextVal;
+      
+      if (progress < 1) {
+        frameId = window.requestAnimationFrame(step);
+      }
+    };
+    frameId = window.requestAnimationFrame(step);
+    return () => window.cancelAnimationFrame(frameId);
+  }, [val]);
+
+  return <>{format(value)}</>;
+}
 
 type Tab = 'price' | 'gov' | 'wallet';
 
@@ -111,7 +143,6 @@ export default function Calculator() {
   };
 
   /* ── derived: ราคาสินค้า ── */
-  const price = parseFloat(priceInput) || 0;
   const govPct   = priceResult ? (priceResult.govPays  / priceResult.itemPrice) * 100 : 60;
   const selfPct  = priceResult ? (priceResult.selfPays / priceResult.itemPrice) * 100 : 40;
 
@@ -123,7 +154,6 @@ export default function Calculator() {
   const govWalletNeed = Math.round(govMaxPrice * SELF_RATIO * 100) / 100;
   const govRemPct  = (govRem / DAILY_CAP) * 100;
   const govStatus  = govRemPct <= 0 ? 'danger' : govRemPct <= 25 ? 'warning' : 'good';
-  const govStatusText = govIsZero ? 'ใช้สิทธิหมดวันนี้' : govRemPct <= 25 ? 'เหลือน้อยแล้ว' : 'ยังมีสิทธิเหลือ';
 
   /* ── derived: G-Wallet ── */
   const wallet      = parseFloat(walletInput) || 0;
@@ -135,7 +165,10 @@ export default function Calculator() {
 
   return (
     <div className={styles.page}>
-      <h1 className={styles.title}>คำนวณ</h1>
+      <div className={styles.header}>
+        <img src="/20260708144656_4503.png" alt="โลโก้ไทยช่วยไทยพลัส" className={styles.logo} />
+        <h1 className={styles.title}>คำนวณสิทธิไทยช่วยไทยพลัส</h1>
+      </div>
 
       {/* ── Install Banner ── */}
       {canInstall && (
@@ -216,7 +249,12 @@ export default function Calculator() {
       ══════════════════════════════════════════ */}
       <div id="panel-price" role="tabpanel" aria-labelledby="tab-price" hidden={tab !== 'price'}>
         <div className={styles.panel}>
-          <p className={styles.panelDesc}>ใส่ราคาสินค้า แล้วดูว่ารัฐช่วยเท่าไหร่ และต้องจ่าย G-Wallet เท่าไหร่</p>
+          <div className={styles.panelDesc}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.panelDescIcon}>
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <p>ใส่ราคาสินค้า แล้วดูว่ารัฐช่วยเท่าไหร่ และต้องจ่าย G-Wallet เท่าไหร่</p>
+          </div>
 
           <div className={styles.inputCard}>
             <label htmlFor="price-input" className={styles.inputLabel}>ราคาสินค้า / บริการ (บาท)</label>
@@ -228,6 +266,7 @@ export default function Calculator() {
                 onChange={handlePriceChange} placeholder="0.00"
                 min="0" step="0.01" autoFocus={tab === 'price'}
                 aria-describedby="price-hint"
+                onWheel={(e) => e.currentTarget.blur()}
               />
               {priceInput && (
                 <button type="button" className={styles.clearBtn}
@@ -239,24 +278,15 @@ export default function Calculator() {
                 </button>
               )}
             </div>
-            <p id="price-hint" className={styles.hint}>
-              รัฐช่วยสูงสุด <strong>200 บาท/วัน</strong> — ซื้อไม่เกิน ฿{fmt(MAX_FULL_BENEFIT_PRICE, 0)} ได้สิทธิเต็ม
-            </p>
-          </div>
-
-          <div className={styles.quickSection}>
-            <p className={styles.quickLabel}>ราคาที่ใช้บ่อย</p>
-            <div className={styles.quickGrid} role="group">
-              {[40, 100, 150, 200, 250, 333].map((a) => (
-                <button key={a} type="button"
-                  className={`${styles.qBtn} ${price === a && priceInput ? styles.qBtnActive : ''}`}
-                  onClick={() => { setPriceInput(String(a)); setPriceResult(calcPayment(a)); }}
-                  aria-pressed={price === a && !!priceInput}>
-                  ฿{fmtInt(a)}
-                </button>
-              ))}
+            <div id="price-hint" className={styles.hint}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+              <span>รัฐช่วยสูงสุด <strong>200 บาท/วัน</strong> — ซื้อไม่เกิน ฿{fmt(MAX_FULL_BENEFIT_PRICE, 0)} ได้สิทธิเต็ม</span>
             </div>
           </div>
+
+
 
           {priceResult ? (
             <section className={styles.result} aria-live="polite">
@@ -266,13 +296,13 @@ export default function Calculator() {
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                     <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                   </svg>
-                  <span>รัฐช่วยสูงสุด <strong>200 บาท/วัน</strong> — ส่วนเกินจ่ายเอง</span>
+                  <span>รัฐช่วยสูงสุด <strong>200 บาท/วัน</strong> — คุณจ่ายส่วนเกินเพิ่ม <strong>฿<AnimNumber val={priceResult.selfPays - (priceResult.itemPrice * 0.4)} /></strong></span>
                 </div>
               )}
 
               <div className={styles.summaryRow}>
                 <span className={styles.summaryLabel}>ราคาสินค้า</span>
-                <span className={styles.summaryValue}>฿{fmt(priceResult.itemPrice)}</span>
+                <span className={styles.summaryValue}>฿<AnimNumber val={priceResult.itemPrice} /></span>
               </div>
 
               <div className={styles.bar} aria-hidden="true">
@@ -292,7 +322,7 @@ export default function Calculator() {
                     <div className={styles.cardTitle}>สิทธิไทยช่วยไทยพลัส</div>
                     <div className={styles.cardSub}>({govPct.toFixed(0)}%{priceResult.isOverDailyCap ? ' — ถูก cap' : ''})</div>
                   </div>
-                  <div className={styles.cardAmt} data-type="gov">฿{fmt(priceResult.govPays)}</div>
+                  <div className={styles.cardAmt} data-type="gov">฿<AnimNumber val={priceResult.govPays} /></div>
                 </div>
 
                 <div className={styles.card} data-type="self">
@@ -303,9 +333,15 @@ export default function Calculator() {
                   </div>
                   <div className={styles.cardBody}>
                     <div className={styles.cardTitle}>G-Wallet ของคุณ</div>
-                    <div className={styles.cardSub}>({selfPct.toFixed(0)}%)</div>
+                    <div className={styles.cardSub}>
+                      {priceResult.isOverDailyCap ? (
+                        <>40% + ส่วนเกิน ฿<AnimNumber val={priceResult.selfPays - (priceResult.itemPrice * 0.4)} /></>
+                      ) : (
+                        `(${selfPct.toFixed(0)}%)`
+                      )}
+                    </div>
                   </div>
-                  <div className={styles.cardAmt} data-type="self">฿{fmt(priceResult.selfPays)}</div>
+                  <div className={styles.cardAmt} data-type="self">฿<AnimNumber val={priceResult.selfPays} /></div>
                 </div>
               </div>
             </section>
@@ -325,7 +361,12 @@ export default function Calculator() {
       ══════════════════════════════════════════ */}
       <div id="panel-gov" role="tabpanel" aria-labelledby="tab-gov" hidden={tab !== 'gov'}>
         <div className={styles.panel}>
-          <p className={styles.panelDesc}>ใส่มูลค่าสิทธิไทยช่วยไทยพลัสที่ใช้ได้วันนี้ แล้วดูว่าซื้อสินค้าได้เท่าไหร่</p>
+          <div className={styles.panelDesc}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.panelDescIcon}>
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <p>ใส่มูลค่าสิทธิไทยช่วยไทยพลัสที่ใช้ได้วันนี้ แล้วดูว่าซื้อสินค้าได้เท่าไหร่</p>
+          </div>
 
           <div className={styles.inputCard}>
             <label htmlFor="gov-input" className={styles.inputLabel}>มูลค่าคงเหลือวันนี้ (บาท)</label>
@@ -337,6 +378,7 @@ export default function Calculator() {
                 onChange={handleGovChange} placeholder="0.00"
                 min="0" max="200" autoFocus={tab === 'gov'}
                 aria-describedby="gov-hint"
+                onWheel={(e) => e.currentTarget.blur()}
               />
               <span className={styles.inputSfx} aria-hidden="true">/ {fmtInt(DAILY_CAP)}</span>
             </div>
@@ -354,35 +396,25 @@ export default function Calculator() {
               </div>
             )}
 
-            <p id="gov-hint" className={styles.hint}>
-              ดูได้ในแอปเป๋าตัง → ไทยช่วยไทยพลัส — สูงสุด <strong>200 บาท/วัน</strong>
-            </p>
-          </div>
-
-          <div className={styles.quickSection}>
-            <p className={styles.quickLabel}>มูลค่าที่ใช้บ่อย</p>
-            <div className={styles.quickGrid} role="group">
-              {[50, 100, 150, 200].map((a) => (
-                <button key={a} type="button"
-                  className={`${styles.qBtn} ${govRem === a && hasGov ? styles.qBtnActive : ''}`}
-                  onClick={() => setGovInput(String(a))}
-                  aria-pressed={govRem === a && hasGov}>
-                  ฿{a}
-                </button>
-              ))}
+            <div id="gov-hint" className={styles.hint}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="2" y="5" width="20" height="14" rx="2" />
+                <line x1="2" y1="10" x2="22" y2="10" />
+              </svg>
+              <span>ดูได้ในแอปเป๋าตัง → ไทยช่วยไทยพลัส — สูงสุด <strong>200 บาท/วัน</strong></span>
             </div>
           </div>
 
+
+
           {hasGov && !govIsZero && (
             <section className={styles.result} aria-live="polite">
-              <div className={`${styles.statusBadge} ${styles[`status_${govStatus}`]}`}>
-                <span className={styles.statusDot} aria-hidden="true" />{govStatusText}
-              </div>
+
 
               <div className={styles.heroCard}>
                 <div className={styles.heroLabel}>ซื้อสินค้าได้มูลค่าสูงสุด</div>
-                <div className={styles.heroAmt}>฿{fmt(govMaxPrice)}</div>
-                <div className={styles.heroSub}>จากสิทธิที่เหลือ ฿{fmt(govRem)} วันนี้</div>
+                <div className={styles.heroAmt}>฿<AnimNumber val={govMaxPrice} /></div>
+                <div className={styles.heroSub}>จากสิทธิที่เหลือ ฿<AnimNumber val={govRem} /> วันนี้</div>
               </div>
 
               <div className={styles.keyCards} role="list">
@@ -394,7 +426,7 @@ export default function Calculator() {
                     </svg>
                   </div>
                   <div className={styles.keyLabel}>สิทธิไทยช่วยไทยพลัส</div>
-                  <div className={styles.keyVal} data-type="gov">฿{fmt(govRem)}</div>
+                  <div className={styles.keyVal} data-type="gov">฿<AnimNumber val={govRem} /></div>
                   <div className={styles.keySub}>รัฐช่วยจ่ายให้</div>
                 </div>
 
@@ -406,7 +438,7 @@ export default function Calculator() {
                     </svg>
                   </div>
                   <div className={styles.keyLabel}>ต้องเตรียม G-Wallet</div>
-                  <div className={styles.keyVal} data-type="self">฿{fmt(govWalletNeed)}</div>
+                  <div className={styles.keyVal} data-type="self">฿<AnimNumber val={govWalletNeed} /></div>
                   <div className={styles.keySub}>ส่วนที่ต้องจ่ายเอง</div>
                 </div>
               </div>
@@ -450,7 +482,12 @@ export default function Calculator() {
       ══════════════════════════════════════════ */}
       <div id="panel-wallet" role="tabpanel" aria-labelledby="tab-wallet" hidden={tab !== 'wallet'}>
         <div className={styles.panel}>
-          <p className={styles.panelDesc}>ใส่ยอด G-Wallet ที่มี แล้วดูว่าซื้อสินค้าได้มูลค่าเท่าไหร่ และรัฐช่วยเพิ่มเท่าไหร่</p>
+          <div className={styles.panelDesc}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.panelDescIcon}>
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <p>ใส่ยอด G-Wallet ที่มี แล้วดูว่าซื้อสินค้าได้มูลค่าเท่าไหร่ และรัฐช่วยเพิ่มเท่าไหร่</p>
+          </div>
 
           <div className={styles.inputCard}>
             <label htmlFor="wallet-input" className={styles.inputLabel}>ยอด G-Wallet ของคุณ (บาท)</label>
@@ -462,6 +499,7 @@ export default function Calculator() {
                 onChange={handleWalletChange} placeholder="0.00"
                 min="0" autoFocus={tab === 'wallet'}
                 aria-describedby="wallet-hint"
+                onWheel={(e) => e.currentTarget.blur()}
               />
               {walletInput && (
                 <button type="button" className={styles.clearBtn}
@@ -472,31 +510,24 @@ export default function Calculator() {
                 </button>
               )}
             </div>
-            <p id="wallet-hint" className={styles.hint}>
-              G-Wallet คือเงินที่คุณเติมเอง — รัฐเพิ่มให้อีก 60% สูงสุด <strong>200 บาท/วัน</strong>
-            </p>
-          </div>
-
-          <div className={styles.quickSection}>
-            <p className={styles.quickLabel}>ลองดูตัวอย่าง</p>
-            <div className={styles.quickGrid} role="group">
-              {[50, 100, 133, 200, 300, 500].map((a) => (
-                <button key={a} type="button"
-                  className={`${styles.qBtn} ${wallet === a && hasWallet ? styles.qBtnActive : ''}`}
-                  onClick={() => setWalletInput(String(a))}
-                  aria-pressed={wallet === a && hasWallet}>
-                  ฿{fmtInt(a)}
-                </button>
-              ))}
+            <div id="wallet-hint" className={styles.hint}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+              </svg>
+              <span>G-Wallet คือเงินที่คุณเติมเอง — รัฐเพิ่มให้อีก 60% สูงสุด <strong>200 บาท/วัน</strong></span>
             </div>
           </div>
+
+
 
           {hasWallet && walletCalc && (
             <section className={styles.result} aria-live="polite">
               <div className={styles.heroCard}>
                 <div className={styles.heroLabel}>ซื้อสินค้าได้มูลค่าสูงสุด</div>
-                <div className={styles.heroAmt}>฿{fmt(maxItem)}</div>
-                <div className={styles.heroSub}>G-Wallet ฿{fmt(wallet)} + รัฐช่วย ฿{fmt(govBonus)}</div>
+                <div className={styles.heroAmt}>฿<AnimNumber val={maxItem} /></div>
+                <div className={styles.heroSub}>G-Wallet ฿<AnimNumber val={wallet} /> + รัฐช่วย ฿<AnimNumber val={govBonus} /></div>
                 {isFull && (
                   <div className={styles.heroBadge}>
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -519,7 +550,7 @@ export default function Calculator() {
                     <div className={styles.cardTitle}>รัฐช่วยเพิ่มให้</div>
                     <div className={styles.cardSub}>{walletCalc.isOverDailyCap ? 'เต็ม cap แล้ว' : 'สิทธิไทยช่วยไทยพลัส'}</div>
                   </div>
-                  <div className={styles.cardAmt} data-type="gov">฿{fmt(govBonus)}</div>
+                  <div className={styles.cardAmt} data-type="gov">฿<AnimNumber val={govBonus} /></div>
                 </div>
 
                 <div className={styles.card} data-type="self">
@@ -533,7 +564,7 @@ export default function Calculator() {
                     <div className={styles.cardTitle}>G-Wallet ของคุณ</div>
                     <div className={styles.cardSub}>เงินที่คุณจ่ายจริง</div>
                   </div>
-                  <div className={styles.cardAmt} data-type="self">฿{fmt(wallet)}</div>
+                  <div className={styles.cardAmt} data-type="self">฿<AnimNumber val={wallet} /></div>
                 </div>
               </div>
 

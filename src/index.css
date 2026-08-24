@@ -1,45 +1,46 @@
-@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
 
 /* ─── Design Tokens ─── */
 :root {
   /* Brand Colors */
-  --color-primary:      #0D9488;
-  --color-primary-dark: #0F766E;
-  --color-primary-light:#CCFBF1;
-  --color-secondary:    #14B8A6;
-  --color-cta:          #F97316;
-  --color-cta-dark:     #EA6C0A;
+  --color-primary:      #F59E0B;
+  --color-primary-dark: #D97706;
+  --color-primary-light:rgba(245, 158, 11, 0.2);
+  --color-secondary:    #FBBF24;
+  --color-cta:          #8B5CF6;
+  --color-cta-dark:     #7C3AED;
 
   /* Semantic */
-  --color-gov:          #0D9488;   /* รัฐช่วย */
-  --color-self:         #F97316;   /* จ่ายเอง */
-  --color-success:      #22C55E;
-  --color-warning:      #EAB308;
+  --color-gov:          #F59E0B;   /* รัฐช่วย */
+  --color-self:         #8B5CF6;   /* จ่ายเอง */
+  --color-success:      #10B981;
+  --color-warning:      #F59E0B;
   --color-danger:       #EF4444;
   --color-info:         #3B82F6;
 
   /* Background & Surface */
-  --bg-page:            #F0FDFA;
-  --bg-card:            #FFFFFF;
-  --bg-card-hover:      #F8FFFD;
-  --bg-muted:           #F1F5F9;
-  --bg-input:           #FFFFFF;
+  --bg-page:            #0F172A;
+  --bg-card:            rgba(30, 41, 59, 0.65);
+  --bg-card-hover:      rgba(30, 41, 59, 0.85);
+  --bg-muted:           rgba(255, 255, 255, 0.05);
+  --bg-input:           rgba(15, 23, 42, 0.6);
 
   /* Text */
-  --text-primary:       #134E4A;
-  --text-secondary:     #475569;
-  --text-muted:         #64748B;
-  --text-inverse:       #FFFFFF;
+  --text-primary:       #F8FAFC;
+  --text-secondary:     #CBD5E1;
+  --text-muted:         #94A3B8;
+  --text-inverse:       #0F172A;
 
   /* Border */
-  --border-default:     #CBD5E1;
-  --border-focus:       #0D9488;
+  --border-default:     rgba(255, 255, 255, 0.1);
+  --border-focus:       #F59E0B;
 
-  /* Shadow */
-  --shadow-sm:          0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
-  --shadow-md:          0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.05);
-  --shadow-lg:          0 10px 30px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.05);
-  --shadow-focus:       0 0 0 3px rgba(13,148,136,0.25);
+  /* Shadow & Filters */
+  --shadow-sm:          0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  --shadow-md:          0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --shadow-lg:          0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.1);
+  --shadow-focus:       0 0 0 3px rgba(245, 158, 11, 0.3);
+  --backdrop-blur:      blur(16px);
 
   /* Radius */
   --radius-sm:          8px;
@@ -57,7 +58,7 @@
   --space-2xl:          48px;
 
   /* Typography */
-  --font-body:          'Sarabun', system-ui, sans-serif;
+  --font-body:          'IBM Plex Sans', system-ui, sans-serif;
   --font-size-xs:       13px;
   --font-size-sm:       15px;
   --font-size-base:     17px;
@@ -96,6 +97,10 @@ html {
 body {
   min-height: 100svh;
   background-color: var(--bg-page);
+  background-image: 
+    radial-gradient(circle at top right, rgba(139, 92, 246, 0.15), transparent 50%),
+    radial-gradient(circle at bottom left, rgba(245, 158, 11, 0.15), transparent 50%);
+  background-attachment: fixed;
 }
 
 #root {
@@ -140,12 +145,12 @@ a:focus-visible {
 
 /* ─── Scrollbar ─── */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-muted); }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-default);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-full);
 }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
 
 /* ─── Reduced Motion ─── */
 @media (prefers-reduced-motion: reduce) {
